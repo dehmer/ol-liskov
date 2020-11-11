@@ -1,0 +1,176 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "GeometryCollection",
+        "geometries": [
+          {
+            "type": "LineString",
+            "coordinates": [
+              [
+                15.526525690496717,
+                48.15119911942372
+              ],
+              [
+                15.54519363631409,
+                48.18798493908511
+              ],
+              [
+                15.597094455691119,
+                48.20915606371802
+              ]
+            ]
+          },
+          {
+            "type": "Point",
+            "coordinates": [
+              15.548461777385764,
+              48.146245299816115
+            ]
+          }
+        ]
+      },
+      "properties": {
+        "sidc": "GFGPOLAGM-*****"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "GeometryCollection",
+        "geometries": [
+          {
+            "type": "LineString",
+            "coordinates": [
+              [
+                15.61439430392683,
+                48.14378818852879
+              ],
+              [
+                15.84586227208961,
+                48.18611448873321
+              ]
+            ]
+          },
+          {
+            "type": "Point",
+            "coordinates": [
+              15.637439642492726,
+              48.14227935186514
+            ]
+          }
+        ]
+      },
+      "properties": {
+        "sidc": "GFTPKF----*****"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "GeometryCollection",
+        "geometries": [
+          {
+            "type": "LineString",
+            "coordinates": [
+              [
+                15.658214324478445,
+                48.29114070891205
+              ],
+              [
+                15.566615603599828,
+                48.26797014179539
+              ],
+              [
+                15.276553865068718,
+                48.21861276774201
+              ]
+            ]
+          },
+          {
+            "type": "Point",
+            "coordinates": [
+              15.657439409435229,
+              48.30658349256481
+            ]
+          }
+        ]
+      },
+      "properties": {
+        "sidc": "GFGPOLAR--*****"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "GeometryCollection",
+        "geometries": [
+          {
+            "type": "LineString",
+            "coordinates": [
+              [
+                15.782751764607138,
+                48.21675441487821
+              ],
+              [
+                15.728565465266973,
+                48.24463689087406
+              ],
+              [
+                15.670321460751646,
+                48.24125104312961
+              ]
+            ]
+          },
+          {
+            "type": "Point",
+            "coordinates": [
+              15.796937709109153,
+              48.22897818997552
+            ]
+          }
+        ]
+      },
+      "properties": {
+        "sidc": "GFGPOLAGS-*****"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "GeometryCollection",
+        "geometries": [
+          {
+            "type": "LineString",
+            "coordinates": [
+              [
+                15.742527142293904,
+                48.10800437469882
+              ],
+              [
+                15.749720614114425,
+                48.164800214570676
+              ],
+              [
+                15.789354814437894,
+                48.189983008594055
+              ]
+            ]
+          },
+          {
+            "type": "Point",
+            "coordinates": [
+              15.76558464780345,
+              48.106701410306385
+            ]
+          }
+        ]
+      },
+      "properties": {
+        "sidc": "GFGPPA----*****"
+      }
+    }
+  ]
+}
