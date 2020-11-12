@@ -1,6 +1,8 @@
 {
-  "name": "ol-modify",
+  "name": "ol-liskov",
   "version": "0.0.0",
+  "description": "OpenLayers - Modify Interaction (complex geometries)",
+  "author": "Horst Dehmer <horst.dehmer@syncpoint.io> (http://syncpoint.io/)",
   "dependencies": {
     "jsts": "^2.6.1",
     "ol": "6.4.3",
