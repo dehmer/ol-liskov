@@ -2,7 +2,7 @@ import Feature from 'ol/Feature'
 import * as TS from '../ts'
 import { format } from './format'
 
-export const fanFrame = feature => {
+export default feature => {
   const geometry = feature.getGeometry()
   const reference = geometry.getFirstCoordinate()
   const { read, write } = format(reference)

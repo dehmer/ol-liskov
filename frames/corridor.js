@@ -3,7 +3,7 @@ import Feature from 'ol/Feature'
 import * as TS from '../ts'
 import { format } from './format'
 
-export const corridorFrame = feature => {
+export default feature => {
   const geometry = feature.getGeometry()
   const geometries = geometry.getGeometries()
   const reference = geometries[0].getFirstCoordinate()
@@ -17,15 +17,18 @@ export const corridorFrame = feature => {
   const params = (() => {
     var [line, point] = TS.geometries(read(geometry))
     const coords = [TS.startPoint(line), point].map(TS.coordinate)
+    const [A, B] = R.take(2, TS.coordinates([line]))
+    const segment = TS.lineSegment([A, B])
+    const orientation = segment.orientationIndex(TS.coordinate(point))
     const width = TS.lineSegment(coords).getLength()
-    return { line, width }
+    return { line, orientation, width }
   })()
 
   let frame = (function create (params) {
-    const { line, width } = params
+    const { line, orientation, width } = params
     const [A, B] = R.take(2, TS.coordinates([line]))
     const bearing = TS.lineSegment([A, B]).angle()
-    const point = TS.point(TS.projectCoordinate(bearing - Math.PI / 2, width)(A))
+    const point = TS.point(TS.projectCoordinate(bearing + orientation * Math.PI / 2, width)(A))
     const copy = properties => create({ ...params, ...properties })
     const geometry = TS.geometryCollection([line, point])
     return { line, point, copy, geometry }
@@ -42,8 +45,11 @@ export const corridorFrame = feature => {
   widthPoint.on('change', ({ target: control }) => {
     const point = read(control.getGeometry())
     const coords = [TS.startPoint(frame.line), point].map(TS.coordinate)
+    const [A, B] = R.take(2, TS.coordinates([frame.line]))
+    const segment = TS.lineSegment([A, B])
+    const orientation = segment.orientationIndex(TS.coordinate(point))
     const width = TS.lineSegment(coords).getLength()
-    frame = frame.copy({ width })
+    frame = frame.copy({ orientation, width })
     feature.setGeometry(write(frame.geometry))
   })
 

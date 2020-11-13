@@ -1,7 +1,7 @@
-import { corridorFrame } from './corridor'
-import { fanFrame } from './fan'
+import corridor from './corridor'
+import fan from './fan'
 
 export default {
-  '[LineString,Point]': corridorFrame,
-  'MultiPoint': fanFrame
+  '[LineString,Point]': corridor,
+  'MultiPoint': fan
 }

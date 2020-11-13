@@ -2,7 +2,7 @@ import * as R from 'ramda'
 import { Fill, Stroke, Style, Circle } from 'ol/style'
 import * as TS from './ts'
 import { transform } from './utm'
-import { geometryType } from './feature'
+import { geometryType, normalizeSIDC } from './feature'
 
 const format = origin => {
   const { toUTM, fromUTM } = transform(origin)
@@ -48,6 +48,31 @@ const fanStyle = (styles, feature) => {
   ].flat()
 }
 
+/**
+ *
+ */
+const orbitStyle = (styles, feature) => {
+  const geometry = feature.getGeometry()
+  const reference = geometry.getGeometries()[0].getFirstCoordinate()
+  const { read, write } = format(reference)
+  const [line, point] = TS.geometries(read(geometry))
+  const [A, B] = R.take(2, TS.coordinates([line]))
+
+  const segment = TS.lineSegment([A, B])
+  const orientation = segment.orientationIndex(TS.coordinate(point))
+  const coords = [TS.startPoint(line), point].map(TS.coordinate)
+  const width = TS.lineSegment(coords).getLength()
+  const angle = segment.angle() + orientation * Math.PI / 2
+  const center = TS.point(TS.projectCoordinate(angle, width / 2)(A))
+
+  return [
+    styles.outline(write(line)),
+    styles.outline(write(TS.pointBuffer(center)(width / 2))),
+    styles.handles(write(point)),
+    styles.handles(write(TS.multiPoint(TS.linePoints(line))))
+  ].flat()
+}
+
 export default mode => feature => {
   const styles = {
     outline: (geometry, options = {}) => {
@@ -89,8 +114,14 @@ export default mode => feature => {
     }
   }
 
-  switch (geometryType(feature.getGeometry())) {
+  const sidc = normalizeSIDC(feature.get('sidc'))
+  const key = sidc === 'G*T*W-----'
+    ? 'Orbit'
+    : geometryType(feature.getGeometry())
+
+  switch (key) {
     case '[LineString,Point]': return corridorStyle(styles, feature)
     case 'MultiPoint': return fanStyle(styles, feature)
+    case 'Orbit': return orbitStyle(styles, feature)
   }
 }

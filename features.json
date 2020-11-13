@@ -194,6 +194,37 @@
       "properties": {
         "sidc": "GFGPGAS---*****"
       }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "GeometryCollection",
+        "geometries": [
+          {
+            "type": "LineString",
+            "coordinates": [
+              [
+                15.608355638585362,
+                48.107007451262604
+              ],
+              [
+                15.646961376480562,
+                48.09245140516276
+              ]
+            ]
+          },
+          {
+            "type": "Point",
+            "coordinates": [
+              15.621636015504455,
+              48.12271822555533
+            ]
+          }
+        ]
+      },
+      "properties": {
+        "sidc": "GFTPW-----*****"
+      }
     }
   ]
 }

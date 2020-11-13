@@ -23,7 +23,7 @@ register(proj4)
 
 const features = new GeoJSON()
   .readFeatures(json, { featureProjection: 'EPSG:3857' })
-  .filter((_, index) => [4, 5].includes(index))
+  .filter((_, index) => [4, 5, 6].includes(index))
 
 const center = [1741294.4412834928, 6140380.806904582]
 const zoom = 11
