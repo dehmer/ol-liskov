@@ -11,7 +11,7 @@ import GeoJSON from 'ol/format/GeoJSON'
 import { Modify, Select, defaults as defaultInteractions } from 'ol/interaction'
 import framer from './framer'
 import style from './style'
-import json from './corridors.json'
+import json from './features.json'
 
 // Register all 60 N/S UTM zones with proj4:
 ;(() => R.range(1, 61).forEach(i => {
@@ -23,7 +23,7 @@ register(proj4)
 
 const features = new GeoJSON()
   .readFeatures(json, { featureProjection: 'EPSG:3857' })
-  .filter((_, index) => [0].includes(index))
+  .filter((_, index) => [4, 5].includes(index))
 
 const center = [1741294.4412834928, 6140380.806904582]
 const zoom = 11
@@ -31,7 +31,7 @@ const view = new View({ center, zoom })
 const tileLayer = new TileLayer({ source: new OSM() })
 const source = new VectorSource({ features })
 const vectorLayer = new VectorLayer({ source, style: style('default') })
-const tiles = false
+const tiles = true
 const layers = tiles ? [tileLayer, vectorLayer] : [vectorLayer]
 const target = document.getElementById('map')
 

@@ -11,9 +11,10 @@ export const zone = coordinate => {
 }
 
 export const transform = reference => {
+  // NOTE: transform changes coordinates inplace; we clone geometry unconditionally:
   const code = zone(reference)
   return {
-    toUTM: geometry => geometry.transform('EPSG:3857', code),
-    fromUTM: geometry => geometry.transform(code, 'EPSG:3857')
+    toUTM: geometry => geometry.clone().transform('EPSG:3857', code),
+    fromUTM: geometry => geometry.clone().transform(code, 'EPSG:3857')
   }
 }
