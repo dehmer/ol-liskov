@@ -1,3 +1,4 @@
+import * as R from 'ramda'
 import Feature from 'ol/Feature'
 import * as TS from '../ts'
 import { format } from './format'
@@ -11,13 +12,13 @@ export default feature => {
     return geometry.getPoints().map(point => new Feature({ geometry: point }))
   })()
 
-  const params = (() => {
+  const params = geometry => {
     var [center, ...points] = TS.geometries(read(geometry))
     const vectors = points
       .map(point => TS.lineSegment(TS.coordinates([center, point])))
       .map(segment => ({ angle: segment.angle(), length: segment.getLength() }))
     return { center, vectors }
-  })()
+  }
 
   let frame = (function create (params) {
     const { center, vectors } = params
@@ -28,41 +29,50 @@ export default feature => {
     const copy = properties => create({ ...params, ...properties })
     const geometry = TS.multiPoint([center, ...points])
     return { center, points, copy, geometry }
-  })(params)
+  })(params(geometry))
 
-  center.on('change', ({ target: control }) => {
+  const centerChanged = ({ target: control }) => {
     const center = read(control.getGeometry())
     frame = frame.copy({ center })
     feature.setGeometry(write(frame.geometry))
+  }
+
+  const pointChanged = R.range(0, points.length).map(index => ({ target: control }) => {
+    const points = frame.points
+    points[index] = read(control.getGeometry())
+    const vectors = points
+      .map(point => TS.lineSegment(TS.coordinates([frame.center, point])))
+      .map(segment => ({ angle: segment.angle(), length: segment.getLength() }))
+
+    frame = frame.copy({ vectors })
+    feature.setGeometry(write(frame.geometry))
   })
 
-  points.forEach((point, index) => {
-    point.on('change', ({ target: control }) => {
-      const points = frame.points
-      points[index] = read(control.getGeometry())
-      const vectors = points
-        .map(point => TS.lineSegment(TS.coordinates([frame.center, point])))
-        .map(segment => ({ angle: segment.angle(), length: segment.getLength() }))
+  const listeners = R.zip([center, ...points], [centerChanged, ...pointChanged])
+  const onChange = ([feature, handler]) => feature.on('change', handler)
+  const unChange = ([feature, handler]) => feature.un('change', handler)
+  listeners.forEach(onChange)
 
-      frame = frame.copy({ vectors })
-      feature.setGeometry(write(frame.geometry))
-    })
-  })
-
-  center.on('propertychange', ({ key, target }) => {
-    if (key !== 'modifying' || target.get(key)) return
+  const updateFeatures = () => {
     frame.points.forEach((point, index) => {
       points[index].setGeometry(write(point))
     })
-  })
+  }
 
-  feature.on('propertychange', ({ key, target }) => {
-    if (key !== 'translating' || target.get(key)) return
-    const geometry = feature.getGeometry()
+  const updateGeometry = geometry => {
+    frame = frame.copy(params(geometry))
+    listeners.forEach(unChange)
     const [head, ...tail] = geometry.getPoints()
     center.setGeometry(head)
     tail.forEach((geometry, index) => points[index].setGeometry(geometry))
-  })
+    listeners.forEach(onChange)
+  }
 
-  return [center, ...points]
+  return {
+    feature,
+    updateFeatures,
+    updateGeometry,
+    dispose: () => listeners.forEach(unChange),
+    controlFeatures: [center, ...points]
+  }
 }

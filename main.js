@@ -8,8 +8,8 @@ import View from 'ol/View'
 import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer'
 import { register } from 'ol/proj/proj4'
 import GeoJSON from 'ol/format/GeoJSON'
-import { Modify, Select, Translate, defaults as defaultInteractions } from 'ol/interaction'
-import { framer } from './frames'
+import * as olInteraction from 'ol/interaction'
+import { Modify } from './frames/Modify'
 import style from './style'
 import json from './features.json'
 
@@ -23,7 +23,7 @@ register(proj4)
 
 const features = new GeoJSON()
   .readFeatures(json, { featureProjection: 'EPSG:3857' })
-  .filter((_, index) => [4, 5, 6].includes(index))
+  .filter((_, index) => [4, 5, 6, 7].includes(index))
 
 const center = [1741294.4412834928, 6140380.806904582]
 const zoom = 11
@@ -35,17 +35,8 @@ const tiles = true
 const layers = tiles ? [tileLayer, vectorLayer] : [vectorLayer]
 const target = document.getElementById('map')
 
-const select = new Select({ style: style('selected') })
-const xyz = framer(select.getFeatures())
-const modify = new Modify({ features: xyz })
-const translate = new Translate({ features: select.getFeatures() })
-
-const setModifying = value => ({ features }) => features.forEach(feature => feature.set('modifying', value))
-const setTranslating = value => ({ features }) => features.forEach(feature => feature.set('translating', value))
-modify.on('modifystart', setModifying(true))
-modify.on('modifyend', setModifying(false))
-translate.on('translatestart', setTranslating(true))
-translate.on('translateend', setTranslating(false))
-
-const interactions = defaultInteractions().extend([select, translate, modify])
+const select = new olInteraction.Select({ style: style('selected') })
+const modify = new Modify({ features: select.getFeatures() })
+const translate = new olInteraction.Translate({ features: select.getFeatures() })
+const interactions = olInteraction.defaults().extend([select, translate, modify])
 new Map({ view, layers, target, interactions })

@@ -123,5 +123,6 @@ export default mode => feature => {
     case '[LineString,Point]': return corridorStyle(styles, feature)
     case 'MultiPoint': return fanStyle(styles, feature)
     case 'Orbit': return orbitStyle(styles, feature)
+    case 'LineString': return styles.outline(feature.getGeometry())
   }
 }
