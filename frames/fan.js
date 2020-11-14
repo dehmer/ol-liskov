@@ -56,5 +56,13 @@ export default feature => {
     })
   })
 
+  feature.on('propertychange', ({ key, target }) => {
+    if (key !== 'translating' || target.get(key)) return
+    const geometry = feature.getGeometry()
+    const [head, ...tail] = geometry.getPoints()
+    center.setGeometry(head)
+    tail.forEach((geometry, index) => points[index].setGeometry(geometry))
+  })
+
   return [center, ...points]
 }

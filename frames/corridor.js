@@ -60,5 +60,13 @@ export default feature => {
     widthPoint.setGeometry(write(frame.point))
   })
 
+  feature.on('propertychange', ({ key, target }) => {
+    if (key !== 'translating' || target.get(key)) return
+    const geometry = feature.getGeometry()
+    const geometries = geometry.getGeometries()
+    centerLine.set('geometry', geometries[0])
+    widthPoint.set('geometry', geometries[1])
+  })
+
   return [centerLine, widthPoint]
 }

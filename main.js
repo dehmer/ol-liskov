@@ -8,8 +8,8 @@ import View from 'ol/View'
 import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer'
 import { register } from 'ol/proj/proj4'
 import GeoJSON from 'ol/format/GeoJSON'
-import { Modify, Select, defaults as defaultInteractions } from 'ol/interaction'
-import framer from './framer'
+import { Modify, Select, Translate, defaults as defaultInteractions } from 'ol/interaction'
+import { framer } from './frames'
 import style from './style'
 import json from './features.json'
 
@@ -36,10 +36,16 @@ const layers = tiles ? [tileLayer, vectorLayer] : [vectorLayer]
 const target = document.getElementById('map')
 
 const select = new Select({ style: style('selected') })
-const modify = new Modify({ features: framer(select.getFeatures()) })
+const xyz = framer(select.getFeatures())
+const modify = new Modify({ features: xyz })
+const translate = new Translate({ features: select.getFeatures() })
+
 const setModifying = value => ({ features }) => features.forEach(feature => feature.set('modifying', value))
+const setTranslating = value => ({ features }) => features.forEach(feature => feature.set('translating', value))
 modify.on('modifystart', setModifying(true))
 modify.on('modifyend', setModifying(false))
+translate.on('translatestart', setTranslating(true))
+translate.on('translateend', setTranslating(false))
 
-const interactions = defaultInteractions().extend([select, modify])
+const interactions = defaultInteractions().extend([select, translate, modify])
 new Map({ view, layers, target, interactions })
