@@ -27,7 +27,6 @@ const corridorStyle = (styles, feature) => {
   return [
     styles.outline(write(buffer)),
     styles.dashed(write(line), { color: 'red' }),
-    styles.dashed(write(TS.pointBuffer(TS.startPoint(line))(width)), { color: 'red' }),
     styles.handles(write(TS.multiPoint(TS.linePoints(line)))),
     styles.handles(write(point))
   ].flat()

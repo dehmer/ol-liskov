@@ -49,9 +49,9 @@ export default feature => {
   })
 
   const listeners = R.zip([center, ...points], [centerChanged, ...pointChanged])
-  const onChange = ([feature, handler]) => feature.on('change', handler)
-  const unChange = ([feature, handler]) => feature.un('change', handler)
-  listeners.forEach(onChange)
+  const register = ([feature, handler]) => feature.on('change', handler)
+  const deregister = ([feature, handler]) => feature.un('change', handler)
+  listeners.forEach(register)
 
   const updateFeatures = () => {
     frame.points.forEach((point, index) => {
@@ -61,18 +61,18 @@ export default feature => {
 
   const updateGeometry = geometry => {
     frame = frame.copy(params(geometry))
-    listeners.forEach(unChange)
+    listeners.forEach(deregister)
     const [head, ...tail] = geometry.getPoints()
     center.setGeometry(head)
     tail.forEach((geometry, index) => points[index].setGeometry(geometry))
-    listeners.forEach(onChange)
+    listeners.forEach(register)
   }
 
   return {
     feature,
     updateFeatures,
     updateGeometry,
-    dispose: () => listeners.forEach(unChange),
+    dispose: () => listeners.forEach(deregister),
     controlFeatures: [center, ...points]
   }
 }

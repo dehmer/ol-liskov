@@ -9,7 +9,7 @@ import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer'
 import { register } from 'ol/proj/proj4'
 import GeoJSON from 'ol/format/GeoJSON'
 import * as olInteraction from 'ol/interaction'
-import { Modify } from './frames/Modify'
+import { Modify } from './interaction/Modify'
 import style from './style'
 import json from './features.json'
 

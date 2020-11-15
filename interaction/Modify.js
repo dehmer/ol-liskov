@@ -15,7 +15,7 @@ export class Modify extends olInteraction.Modify {
     super(options)
 
     /**
-     * frames_ :: feature.ol_uid ~> frame
+     * frames_ :: feature.ol_uid ~> framer
      *
      * Probably not necessary, but for now we support modifiying
      * muliple features at once, thus we need a frame per complex feature.
@@ -76,7 +76,7 @@ export class Modify extends olInteraction.Modify {
     super.dispatchEvent(event)
 
     if (event.type === 'modifyend') {
-      const updateFeatures = frame => frame.updateFeatures()
+      const updateFeatures = framer => framer.updateFeatures()
       Object.values(this.framers_).forEach(updateFeatures)
     }
   }
