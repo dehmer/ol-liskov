@@ -11,6 +11,8 @@ import GeoJSON from 'ol/format/GeoJSON'
 import * as olInteraction from 'ol/interaction'
 import { Modify } from './interaction/Modify'
 import style from './style'
+import * as descriptors from './feature-descriptors'
+
 import json from './features.json'
 
 // Register all 60 N/S UTM zones with proj4:
@@ -36,7 +38,19 @@ const layers = tiles ? [tileLayer, vectorLayer] : [vectorLayer]
 const target = document.getElementById('map')
 
 const select = new olInteraction.Select({ style: style('selected') })
-const modify = new Modify({ features: select.getFeatures() })
+
+const modify = new Modify({
+  features: select.getFeatures(),
+  showVertexCondition: event => {
+    // Always show when snapped to exising geometry vertex:
+    if (event.snappedToVertex) return true
+
+    // Don't show when feature's max point is limited to two:
+    const sidc = event.feature.get('sidc')
+    return descriptors.maxPoints(sidc) !== 2
+  }
+})
+
 const translate = new olInteraction.Translate({ features: select.getFeatures() })
 const interactions = olInteraction.defaults().extend([select, translate, modify])
 new Map({ view, layers, target, interactions })
