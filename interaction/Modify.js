@@ -182,8 +182,6 @@ export class Modify extends olInteraction.Modify {
 
     const rBush = this.rBush_;
     const nodes = rBush.getInExtent(box);
-    let removeVertexFeature = true;
-
     if (nodes.length > 0) {
       nodes.sort(sortByDistance);
       const node = nodes[0];
