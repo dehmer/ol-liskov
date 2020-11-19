@@ -1,5 +1,6 @@
 import * as R from 'ramda'
 import Feature from 'ol/Feature'
+import { Point } from 'ol/geom'
 import * as TS from '../ts'
 import { format } from './format'
 
@@ -69,11 +70,21 @@ export default feature => {
     listeners.forEach(register)
   }
 
+  const projectCoordinate = (control, coordinate) => {
+    if (control !== point) return coordinate
+    const [A, B] = R.take(2, TS.coordinates([frame.line]))
+    const P = new TS.Coordinate(A.x - (B.y - A.y), A.y + (B.x - A.x))
+    const segment = TS.lineSegment([A, P])
+    const projected = segment.project(TS.coordinate(read(new Point(coordinate))))
+    return write(TS.point(projected)).getFirstCoordinate()
+  }
+
   return {
     feature,
     updateFeatures,
     updateGeometry,
-    dispose: () => listeners.forEach(deregister),
-    controlFeatures: [center, point]
+    projectCoordinate,
+    controlFeatures: [center, point],
+    dispose: () => listeners.forEach(deregister)
   }
 }

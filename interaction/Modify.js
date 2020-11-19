@@ -258,6 +258,18 @@ export class Modify extends olInteraction.Modify {
     }
   }
 
+  handleDragEvent(evt) {
+    const framers = this.dragSegments_
+      .map(segment => segment[0])
+      .map(({ feature }) => [feature, this.originatingFeature_(feature)])
+      .map(([controlFeature, feature]) => [controlFeature, this.framers_[feature.ol_uid]])
+      .filter(([_, framer]) => framer && framer.projectCoordinate)
+
+    if (framers.length !== 1) return super.handleDragEvent(evt)
+    evt.coordinate = framers[0][1].projectCoordinate(framers[0][0], evt.coordinate)
+    return super.handleDragEvent(evt)
+  }
+
   /**
    * Little hack ahead:
    * We need a hook to sync control features with
