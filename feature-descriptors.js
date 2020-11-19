@@ -7,8 +7,9 @@ const descriptors = json.reduce((acc, feature) => {
 }, {})
 
 export const maxPoints = sidc => {
+  if (!sidc) return undefined
   const descriptor = descriptors[normalizeSIDC(sidc)]
-  return descriptor.parameters
-    ? descriptor.parameters.maxPoints
-    : undefined
+  if (!descriptor || !descriptor.parameters) return undefined
+  if (descriptor.parameters.layout === 'orbit') return 2
+  return descriptor.parameters.maxPoints
 }

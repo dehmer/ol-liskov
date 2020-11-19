@@ -51,6 +51,10 @@ const modify = new Modify({
   }
 })
 
-const translate = new olInteraction.Translate({ features: select.getFeatures() })
+const K = v => fn => { fn(v); return v }
+const translate = K(new olInteraction.Translate({ features: select.getFeatures() }))( interaction => {
+  interaction.setActive(false)
+})
+
 const interactions = olInteraction.defaults().extend([select, translate, modify])
 new Map({ view, layers, target, interactions })
