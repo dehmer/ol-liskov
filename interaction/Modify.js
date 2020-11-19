@@ -1,4 +1,5 @@
 import Feature from 'ol/Feature'
+import { Point } from 'ol/geom'
 import * as olInteraction from 'ol/interaction'
 import GeometryType from 'ol/geom/GeometryType'
 import { always } from 'ol/events/condition'
@@ -15,6 +16,11 @@ import { getUid } from 'ol/util.js';
 
 import { geometryType } from '../feature'
 import frames from './index'
+
+// >>> OL/ORIGINAL
+// The following code is copied from ol/Modify interaction.
+// DEPT: This should be considered tech-dept; issue reference
+//
 
 /**
  * The segment index assigned to a circle's circumference when
@@ -79,17 +85,20 @@ function closestOnSegmentData(pointCoordinates, segmentData, projection) {
   return toUserCoordinate(closestOnSegment(coordinate, tempSegment), projection);
 }
 
+// <<< OL/ORIGINAL
+
 /**
  * Custom modify interaction, capable of handling
- * 'complex geometries'. We define a complex geometry as
- * a geometry (collection), where changing one part
- * requires updating another dependent part of the geometry.
+ * 'special geometries'. We define a special geometry as
+ * a geometry, where changing one part requires updating
+ * another dependent part of the geometry.
  */
 export class Modify extends olInteraction.Modify {
 
   constructor (options) {
     super(options)
 
+    // Callback is evaluated in handlePointerAtPixel_().
     this.showVertexCondition_ = options.showVertexCondition
       ? options.showVertexCondition
       : always;
@@ -106,11 +115,16 @@ export class Modify extends olInteraction.Modify {
   /**
    * @param {Feature} feature Feature.
    * @private
+   * @override
    */
   addFeature_ (feature) {
     const addFeature = feature => super.addFeature_(feature)
 
-    // `factory` is defined for complex geometry only.
+    // TODO: file OL issue
+    // Prevent vertex feature from adding to modify interaciton (through select):
+    if (feature.get('privileged')) return
+
+    // `factory` is defined for special geometry only.
     // If undefined, default behavior kicks in (aka add simple feature).
     const type = geometryType(feature.getGeometry())
     const factory = frames[type]
@@ -121,7 +135,7 @@ export class Modify extends olInteraction.Modify {
     this.framers_[feature.ol_uid].controlFeatures.forEach(addFeature)
 
     // To support external geometry updates (e.g. translate interaction),
-    // we have to framers geometry whenever appropriate.
+    // we have to update framers geometry whenever appropriate.
     feature.addEventListener('change', () => {
       if (this.changingFeature_) return
       if (!this.framers_[feature.ol_uid]) return
@@ -132,13 +146,15 @@ export class Modify extends olInteraction.Modify {
   /**
    * @param {Feature} feature Feature.
    * @private
+   * @override
    */
   removeFeature_ (feature) {
-    if (!this.framers_[feature.ol_uid]) return super.removeFeature_(feature)
+    const removeFeature = feature => super.removeFeature_(feature)
+    if (!this.framers_[feature.ol_uid]) return removeFeature(feature)
 
     // Remove control features instead originating feature:
     const { controlFeatures, dispose } = this.framers_[feature.ol_uid]
-    controlFeatures.forEach(super.removeFeature_.bind(this))
+    controlFeatures.forEach(removeFeature)
 
     // Dispose and delete framer:
     dispose()
@@ -155,12 +171,39 @@ export class Modify extends olInteraction.Modify {
   }
 
   /**
+   * @param {import("../coordinate.js").Coordinate} coordinates Coordinates.
+   * @return {Feature} Vertex feature.
+   * @private
+   * @override
+   */
+  createOrUpdateVertexFeature_(coordinates) {
+    let vertexFeature = this.vertexFeature_;
+    if (!vertexFeature) {
+      // Tag vertex feature as privileged to prevent re-adding.
+      // See also addFeature_().
+      vertexFeature = new Feature({
+        geometry: new Point(coordinates),
+        privileged: true
+      });
+      this.vertexFeature_ = vertexFeature;
+      this.overlay_.getSource().addFeature(vertexFeature);
+    } else {
+      const geometry = vertexFeature.getGeometry();
+      geometry.setCoordinates(coordinates);
+    }
+    return vertexFeature;
+  }
+
+  /**
    * @param {import("../pixel.js").Pixel} pixel Pixel
    * @param {import("../PluggableMap.js").default} map Map.
    * @param {import("../coordinate.js").Coordinate=} opt_coordinate The pixel Coordinate.
    * @private
    */
   handlePointerAtPixel_(pixel, map, opt_coordinate) {
+
+    // >>> OL/ORIGINAL
+
     const pixelCoordinate = opt_coordinate || map.getCoordinateFromPixel(pixel);
     const projection = map.getView().getProjection();
     const sortByDistance = function (a, b) {
@@ -215,6 +258,10 @@ export class Modify extends olInteraction.Modify {
                 : closestSegment[0];
           }
 
+          // <<< OL/ORIGINAL
+
+          // Hide or show/update vertext feature:
+
           const showVertexFeature = this.showVertexCondition_({
             vertex,
             controlFeature: node.feature,
@@ -228,6 +275,8 @@ export class Modify extends olInteraction.Modify {
             this.overlay_.getSource().removeFeature(this.vertexFeature_);
             this.vertexFeature_ = null;
           }
+
+          // >>> OL/ORIGINAL
 
           const geometries = {};
           geometries[getUid(node.geometry)] = true;
@@ -252,19 +301,31 @@ export class Modify extends olInteraction.Modify {
         return;
       }
     }
+
     if (this.vertexFeature_) {
       this.overlay_.getSource().removeFeature(this.vertexFeature_);
       this.vertexFeature_ = null;
     }
+
+    // <<< OL/ORIGINAL
   }
 
+  /**
+   * Handle pointer drag events.
+   * @param {import("../MapBrowserEvent.js").default} evt Event.
+   * @override
+   */
   handleDragEvent(evt) {
+
+    // Enforce coordinate drag constraint if event matches some framer.
+
     const framers = this.dragSegments_
       .map(segment => segment[0])
       .map(({ feature }) => [feature, this.originatingFeature_(feature)])
       .map(([controlFeature, feature]) => [controlFeature, this.framers_[feature.ol_uid]])
       .filter(([_, framer]) => framer && framer.projectCoordinate)
 
+    // Project coordinate if applicable:
     if (framers.length !== 1) return super.handleDragEvent(evt)
     evt.coordinate = framers[0][1].projectCoordinate(framers[0][0], evt.coordinate)
     return super.handleDragEvent(evt)
@@ -276,6 +337,10 @@ export class Modify extends olInteraction.Modify {
    * feature geometry after a modification.
    * In order to do so, we use 'modifyend' (a interaction level event)
    * to update control features of all framers.
+   *
+   * DEPT: This should probably be considered tech-dept; issue reference
+   *
+   * @override
    */
   dispatchEvent (event) {
     super.dispatchEvent(event)
